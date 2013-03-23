@@ -1,0 +1,4 @@
+content stormcows chrome/content/
+resource stormcows modules/
+manifest components/calStormCows.manifest
+overlay chrome://messenger/content/mailWindowOverlay.xul chrome://stormcows/content/menuOverlay.xul

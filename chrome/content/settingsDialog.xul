@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+   
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<dialog id="stormcows-config-dialog"
+        title="StormCows Configuration"
+        buttons="accept"
+        buttonlabelaccept="Close"
+        ondialogaccept="scConfig.doOK()"
+        onload="scConfig.doLoad()"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+        
+  <script type="application/javascript" src="settingsDialog.js" />
+  <script type="application/javascript">
+    let scConfig = new StormCowsConfig();
+  </script>
+  
+  <groupbox>
+    <caption label="Status" />
+    <hbox>
+      <description id="stormcows-config-authentication-status"
+                   flex="1"></description>
+      <button id="stormcows-config-logout"
+              label="Logout"
+              oncommand="scConfig.doLogout()" />
+    </hbox>
+        
+    <hbox>
+      <button id="stormcows-config-startauth-btn"
+              label="Start Authentication" 
+              oncommand="scConfig.doStartAuth()" />
+      <button id="stormcows-config-finishauth-btn"
+              label="Finish Authentication"
+              oncommand="scConfig.doFinishAuth()"
+              disabled="true" />
+    </hbox>
+    
+  </groupbox>
+  
+  <separator class="groove" />
+  
+  <groupbox>
+    <caption label="New Calendar" />
+    <hbox>
+      <menulist id="stormcows-config-calendar-menulist" flex="1">
+        <menupopup>
+        </menupopup>
+      </menulist>
+      <button id="stormcows-config-addcalendar-btn"
+              label="Add"
+              oncommand="scConfig.doAddCalendar()" />
+    </hbox>
+  </groupbox>
+  
+  <separator class="groove" />
+  
+  <description style="font-size:80%; font-style:italic">
+    This product uses the Remember The Milk API but is not endorsed or certified by Remember The Milk.
+  </description>
+  
+  <separator />
+</dialog>
