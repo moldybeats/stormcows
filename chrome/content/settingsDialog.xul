@@ -49,9 +49,12 @@
         <menupopup>
         </menupopup>
       </menulist>
-      <button id="stormcows-config-addcalendar-btn"
-              label="Add"
-              oncommand="scConfig.doAddCalendar()" />
+      <button id="stormcows-config-addcalendar-events-btn"
+              label="Add Events"
+              oncommand="scConfig.doAddCalendar('events')" />
+      <button id="stormcows-config-addcalendar-todos-btn"
+              label="Add Todos"
+              oncommand="scConfig.doAddCalendar('todos')" />
     </hbox>
   </groupbox>
   

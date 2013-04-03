@@ -15,7 +15,8 @@ StormCowsConfig.prototype = {
   mBtnStartAuth: null,
   mBtnFinishAuth: null,
   mMenulistCalendars: null,
-  mBtnAddCalendar: null,
+  mBtnAddCalendarEvents: null,
+  mBtnAddCalendarTodos: null,
   
   setAuthenticated: function() {
     stormcowsLogger.debug('settingsDialog.js:setAuthenticated()');
@@ -25,7 +26,8 @@ StormCowsConfig.prototype = {
     this.mBtnStartAuth.disabled = true;
     this.mBtnFinishAuth.disabled = true;
     this.mMenulistCalendars.disabled = false;
-    this.mBtnAddCalendar.disabled = false;
+    this.mBtnAddCalendarEvents.disabled = false;
+    this.mBtnAddCalendarTodos.disabled = false;
     
     let data = {
       callback: this.populateCalendarList.bind(this)
@@ -41,7 +43,8 @@ StormCowsConfig.prototype = {
     this.mBtnStartAuth.disabled = false;
     this.mBtnFinishAuth.disabled = true;
     this.mMenulistCalendars.disabled = true;
-    this.mBtnAddCalendar.disabled = true;
+    this.mBtnAddCalendarEvents.disabled = true;
+    this.mBtnAddCalendarTodos.disabled = true;
   },
   
   populateCalendarList: function(aLists) {
@@ -70,7 +73,8 @@ StormCowsConfig.prototype = {
     this.mBtnStartAuth = document.getElementById('stormcows-config-startauth-btn');
     this.mBtnFinishAuth = document.getElementById('stormcows-config-finishauth-btn');
     this.mMenulistCalendars = document.getElementById('stormcows-config-calendar-menulist');
-    this.mBtnAddCalendar = document.getElementById('stormcows-config-addcalendar-btn');
+    this.mBtnAddCalendarEvents = document.getElementById('stormcows-config-addcalendar-events-btn');
+    this.mBtnAddCalendarTodos = document.getElementById('stormcows-config-addcalendar-todos-btn');
     
     if (rtmClient.authToken) {
       this.setAuthenticated();
@@ -160,7 +164,7 @@ StormCowsConfig.prototype = {
     this.setAuthenticated();
   },
   
-  doAddCalendar: function() {
+  doAddCalendar: function(aItemType) {
     stormcowsLogger.debug('settingsDialog.js:doAddCalendar()');
     
     let menuItem = this.mMenulistCalendars.selectedItem;
@@ -172,6 +176,7 @@ StormCowsConfig.prototype = {
     let newCal = calManager.createCalendar('stormcows', url);
     newCal.name = listName;
     newCal.setProperty('listId', listId);
+    newCal.setProperty('itemType', aItemType);
     
     calManager.registerCalendar(newCal);
   },
