@@ -54,7 +54,7 @@ calStormCows.prototype = {
   mLastSync: null,
   mTaskCache: {},
   mPendingApiRequest: false,
-  mPendingApiRequestListeners: [],
+  mPendingApiRequestListeners: {},
   
   get pendingApiRequest() {
     return this.mPendingApiRequest;
@@ -64,12 +64,15 @@ calStormCows.prototype = {
     
     // when we turn off the pendingApiRequest flag, process anything in the pendingApiRequestListeners queue
     if (aValue == false) {
-      for (let i=0; i<this.mPendingApiRequestListeners.length; i++) {
-        let apiListener = this.mPendingApiRequestListeners[i];
+      let apiListeners = this.mPendingApiRequestListeners[this.id];
+      
+      for (let i=0; i<apiListeners.length; i++) {
+        let apiListener = apiListeners[i];
         let callback = apiListener.callback;
         callback.apply(this, [apiListener.itemFilter, apiListener.count, 
                                apiListener.fromDate, apiListener.toDate, apiListener.listener]);
       }
+      this.mPendingApiRequestListeners[this.id] = [];
     }
   },
   
@@ -84,8 +87,9 @@ calStormCows.prototype = {
     stormcowsLogger.debug('calStormCows.js:getCachedItems() (' + this.name + ')');
     
     let items = [];
-    for (let itemId in this.mTaskCache) {
-      let cachedItem = this.mTaskCache[itemId];
+    let taskCache = this.mTaskCache[this.id];
+    for (let itemId in this.mTaskCache[this.id]) {
+      let cachedItem = this.mTaskCache[this.id][itemId];
       let rangeStartComp = aRangeStart ? cachedItem.startDate.compare(aRangeStart) : 1;
       let rangeEndComp = aRangeEnd ? cachedItem.startDate.compare(aRangeEnd) : -1;
       
@@ -186,7 +190,7 @@ calStormCows.prototype = {
     stormcowsLogger.debug('calStormCows.js:adoptItem_callback()');
         
     if (aStatus == rtmClient.results.RTM_API_OK) {
-      this.mTaskCache[aItem.id] = aItem;
+      this.mTaskCache[this.id][aItem.id] = aItem;
       
       this.notifyOperationComplete(aListener,
                                     Components.results.NS_OK,
@@ -229,7 +233,7 @@ calStormCows.prototype = {
     stormcowsLogger.debug('calStormCows.js:modifyItem_callback()');
     
     if (aStatus == rtmClient.results.RTM_API_OK) {
-      this.mTaskCache[aNewItem.id] = aNewItem;
+      this.mTaskCache[this.id][aNewItem.id] = aNewItem;
     
       this.notifyOperationComplete(aListener,
                                    Components.results.NS_OK,
@@ -271,7 +275,7 @@ calStormCows.prototype = {
     stormcowsLogger.debug('calStormCows.js:deleteItem_callback()');
     
     if (aStatus == rtmClient.results.RTM_API_OK) {    
-      delete this.mTaskCache[aItem.id];
+      delete this.mTaskCache[this.id][aItem.id];
       
       this.notifyOperationComplete(aListener,
                                     Components.results.NS_OK,
@@ -296,6 +300,15 @@ calStormCows.prototype = {
   
   getItems: function cSC_getItems(aItemFilter, aCount, aRangeStart, aRangeEnd, aListener) {
     stormcowsLogger.debug('calStormCows.js:getItems() (' + this.name + ')');
+    
+    // we have to initialize these, and the calendar ID property isn't available
+    // when the constructor is called
+    if (!this.mTaskCache[this.id]) {
+      this.mTaskCache[this.id] = {};
+    }
+    if (!this.mPendingApiRequestListeners[this.id]) {
+      this.mPendingApiRequestListeners[this.id] = [];
+    }
     
     try {
       // if Event items are not being requested, return nothing immediately
@@ -331,7 +344,7 @@ calStormCows.prototype = {
               toDate: aRangeEnd,
               listener: aListener
             };
-            this.mPendingApiRequestListeners.push(apiRequestListener);
+            this.mPendingApiRequestListeners[this.id].push(apiRequestListener);
           } else {
             this.getCachedItems(aItemFilter, aCount, aRangeStart, aRangeEnd, aListener);
           }
@@ -367,10 +380,10 @@ calStormCows.prototype = {
     } else {
       if (aStatus == rtmClient.results.RTM_API_OK) {
         stormcowsLogger.debug('calStormCows.js:getItems_callback()', 'Refreshing the task cache');
-        this.mTaskCache = {};
+        this.mTaskCache[this.id] = {};
         for (let i=0; i<aItems.length; i++) {
           let item = aItems[i];
-          this.mTaskCache[item.id] = item;
+          this.mTaskCache[this.id][item.id] = item;
         }
         this.pendingApiRequest = false;
         
