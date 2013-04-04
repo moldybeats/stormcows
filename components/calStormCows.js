@@ -180,9 +180,15 @@ calStormCows.prototype = {
   adoptItem: function cSC_adoptItem(aItem, aListener) {
     stormcowsLogger.debug('calStormCows.js:adoptItem()');
     
-    try {
-      aItem = aItem.QueryInterface(Components.interfaces.calIEvent);
-    
+    try {    
+      let isEvent = aItem.isCompleted == null;
+      if (this.itemType == 'events' && !isEvent) {
+        throw new Components.Exception('This calendar only accepts events.', Components.results.NS_ERROR_UNEXPECTED);
+      }
+      if (this.itemType == 'todos' && isEvent) {
+        throw new Components.Exception('This calendar only accepts todos.', Components.results.NS_ERROR_UNEXPECTED);
+      }
+      
       let data = {
         item: aItem,
         listId: this.listId,

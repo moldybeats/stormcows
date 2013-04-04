@@ -101,17 +101,26 @@ let rtmClient = {
         }
       
         item = aData.item;
-        if (!item.startDate) {
-          stormcowsLogger.debug('rtmclient.js:request()/add', 'Item has no start date');
+        isEvent = item.isCompleted == null;
+        if (isEvent && !item.startDate) {
+          stormcowsLogger.debug('rtmclient.js:request()/add', 'Event has no start date');
           return;
         }
         
-        let startDate  = item.startDate;
+        let dueDate;
         let dueDateStr = '';
-        if (startDate.isDate) {
-          dueDateStr = this.makeDateStr(startDate);
+        if (isEvent) {
+          dueDate = item.startDate;
         } else {
-          dueDateStr = this.makeDateStr(startDate) + ' at ' + this.makeTimeStr(startDate);
+          dueDate = item.dueDate;
+        }
+        
+        if (dueDate) {
+          if (dueDate.isDate) {
+            dueDateStr = this.makeDateStr(dueDate);
+          } else {
+            dueDateStr = this.makeDateStr(dueDate) + ' at ' + this.makeTimeStr(dueDate);
+          }
         }
         
         this.getTimeline();
@@ -121,6 +130,12 @@ let rtmClient = {
           parse: '1',
           list_id: aData.listId,
         };
+        if (dueDateStr.length == 0) {
+          params.name = item.title;
+        } else {
+          params.name = item.title + ' ^' + dueDateStr;
+        }
+        
         metadata = {
           calCallback: aData.callback,
           calListener: aData.calListener,
