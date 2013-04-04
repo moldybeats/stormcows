@@ -57,7 +57,8 @@ let rtmClient = {
          idParts = [],
          listId = null,
          taskseriesId = null,
-         taskId = null;
+         taskId = null,
+         isEvent = false;
     
     switch (aOperation) {
       case 'getFrob':
@@ -228,7 +229,12 @@ let rtmClient = {
         break;
         
       case 'get':
-        let filterStr = 'status:incomplete AND NOT due:never';
+        let filterStr;
+        if (aData.itemType == 'events') {
+          filterStr = 'status:incomplete AND NOT due:never';
+        } else {
+          filterStr = null;
+        }
         stormcowsLogger.debug('rtmclient.js:request()/get', 'Filter: ' + filterStr);
         
         if (!aData.listId) {
@@ -237,10 +243,14 @@ let rtmClient = {
         }
         
         params = {
-          filter: filterStr,
           list_id: aData.listId
         };
+        if (filterStr) {
+          params.filter = filterStr;
+        }
+        
         metadata = {
+          itemType: aData.itemType,
           calCallback: aData.callback,
           calListener: aData.calListener,
           calendar: aData.calendar
@@ -581,6 +591,7 @@ let rtmClient = {
          listener = aMetadata.calListener,
          calendar = aMetadata.calendar,
          items = [],
+         itemType = aMetadata.itemType,
          tzService = cal.getTimezoneService(),
          status = null;
     
@@ -600,44 +611,79 @@ let rtmClient = {
             let taskseriesId = series[j].id;
             let tasks = this.toArray(series[j].task);
             for (let k=0; k<tasks.length; k++) {
+              let item;
               let taskId = tasks[k].id;
-              let item = cal.createEvent();
-              
               let name = series[j].name;
-              let due = new Date(tasks[k].due);
-              let startDate = cal.createDateTime();
-              let endDate = null;
-              let duration = cal.createDuration();
-              if (tasks[k].has_due_time == '0') {
+              let due = tasks[k].due;
+              
+              if (itemType == 'events') {
+                item = cal.createEvent();
+                let startDate = cal.createDateTime();
                 startDate.jsDate = new Date(due);
-                startDate.isDate = true;
-                startDate = startDate.getInTimezone(tzService.defaultTimezone);
-                endDate = startDate.clone();
-                duration.days = 1;
-                endDate.addDuration(duration);
+                let endDate = null;
+                let duration = cal.createDuration();
+                if (tasks[k].has_due_time == '0') {
+                  startDate.isDate = true;
+                  startDate = startDate.getInTimezone(tzService.defaultTimezone);
+                  endDate = startDate.clone();
+                  duration.days = 1;
+                  endDate.addDuration(duration);
+                } else {
+                  startDate.isDate = false;
+                  startDate = startDate.getInTimezone(tzService.defaultTimezone);
+                  endDate = startDate.clone();
+                  duration.hours = 1;
+                  endDate.addDuration(duration);
+                }
+                
+                item.startDate = startDate;
+                item.endDate = endDate;
+                
               } else {
-                startDate.jsDate = new Date(due);
-                startDate.isDate = false;
-                startDate = startDate.getInTimezone(tzService.defaultTimezone);
-                endDate = startDate.clone();
-                duration.hours = 1;
-                endDate.addDuration(duration);
+                item = cal.createTodo();
+                if (!due) {
+                  item.dueDate = null;
+                } else {
+                  let dueDate = cal.createDateTime();
+                  dueDate.jsDate = new Date(due);
+                  if (tasks[k].has_due_time == '0') {
+                    dueDate.isDate = true;
+                  } else {
+                    dueDate.isDate = false;
+                  }
+                  dueDate = dueDate.getInTimezone(tzService.defaultTimezone);
+                  
+                  item.dueDate = dueDate;
+                }
+                
+                let completed = tasks[k].completed;
+                if (!completed) {
+                  item.completedDate = null;
+                  item.percentComplete = 0;
+                  item.isCompleted = false;
+                } else {
+                  let completedDate = cal.createDateTime();
+                  completedDate.jsDate = new Date(completed);
+                  completedDate = completedDate.getInTimezone(tzService.defaultTimezone);
+                  completedDate.isDate = false;
+                  item.completedDate = completedDate;
+                  item.percentComplete = 100;
+                  item.isCompleted = true;
+                }
               }
               
-              let rtmPriority = tasks[k].priority;
-              if (rtmPriority == 'N') {
+              let priority = tasks[k].priority;
+              if (priority == 'N') {
                 item.priority = 0;
-              } else if (rtmPriority == '1') {
+              } else if (priority == '1') {
                 item.priority = 1;
-              } else if (rtmPriority == '2') {
+              } else if (priority == '2') {
                 item.priority = 5;
-              } else if (rtmPriority == '3') {
+              } else if (priority == '3') {
                 item.priority = 9;
               }
               
               item.title = name;
-              item.startDate = startDate;
-              item.endDate = endDate;
               item.calendar = calendar;
               item.id = this.makeRtmId(listId, taskseriesId, taskId);
               item.makeImmutable();

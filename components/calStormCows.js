@@ -83,6 +83,10 @@ calStormCows.prototype = {
     this.setProperty('listId', aListId);
   },
   
+  get itemType() {
+    return this.getProperty('itemType');
+  },
+  
   getCachedItems: function cSC_getCachedItems(aItemFilter, aCount, aRangeStart, aRangeEnd, aListener) {
     stormcowsLogger.debug('calStormCows.js:getCachedItems() (' + this.name + ')');
     
@@ -90,11 +94,22 @@ calStormCows.prototype = {
     let taskCache = this.mTaskCache[this.id];
     for (let itemId in this.mTaskCache[this.id]) {
       let cachedItem = this.mTaskCache[this.id][itemId];
-      let rangeStartComp = aRangeStart ? cachedItem.startDate.compare(aRangeStart) : 1;
-      let rangeEndComp = aRangeEnd ? cachedItem.startDate.compare(aRangeEnd) : -1;
+      let compDate;
+      if (this.itemType == 'events') {
+        compDate = cachedItem.startDate;
+      } else {
+        compDate = cachedItem.dueDate;
+      }
       
-      if (rangeStartComp >= 0 && rangeEndComp <= 0) {
+      if (!compDate) {
         items.push(cachedItem);
+      } else {
+        let rangeStartComp = aRangeStart ? compDate.compare(aRangeStart) : 1;
+        let rangeEndComp = aRangeEnd ? compDate.compare(aRangeEnd) : -1;
+        
+        if (rangeStartComp >= 0 && rangeEndComp <= 0) {
+          items.push(cachedItem);
+        }
       }
     }
     
@@ -311,8 +326,11 @@ calStormCows.prototype = {
     }
     
     try {
-      // if Event items are not being requested, return nothing immediately
-      if ((aItemFilter & Components.interfaces.calICalendar.ITEM_FILTER_TYPE_EVENT) == 0) {
+      let wantEvents = ((aItemFilter & Components.interfaces.calICalendar.ITEM_FILTER_TYPE_EVENT) != 0);
+      let wantTodos = ((aItemFilter & Components.interfaces.calICalendar.ITEM_FILTER_TYPE_TODO) != 0);
+      
+      if ((this.itemType == 'events' && !wantEvents) ||
+           (this.itemType == 'todos' && !wantTodos)) {
         this.notifyOperationComplete(aListener,
                                       Components.results.NS_OK,
                                       Components.interfaces.calIOperationListener.GET,
@@ -325,6 +343,7 @@ calStormCows.prototype = {
           
           let data = {
             calendar: this,
+            itemType: this.itemType,
             listId: this.listId,
             calListener: aListener,
             callback: this.getItems_callback.bind(this)
@@ -363,12 +382,19 @@ calStormCows.prototype = {
   getItems_callback: function cSC_getItems_callback(aStatus, aItems, aListener) {
     stormcowsLogger.debug('calStormCows.js:getItems_callback() (' + this.name + ')');
     
+    let calItemType;
+    if (this.itemType == 'events') {
+      calItemType = Components.interfaces.calIEvent;
+    } else {
+      calItemType = Components.interfaces.calITodo;
+    }
+    
     // status code -1 indicates no API call was made and we're returning a cached result
     // if the result is any other success code, we have to refresh the cache
     if (aStatus == -1) {
       aListener.onGetResult(this.superCalendar,
                             Components.results.NS_OK,
-                            Components.interfaces.calIEvent,
+                            calItemType,
                             null,
                             aItems.length,
                             aItems);
@@ -389,7 +415,7 @@ calStormCows.prototype = {
         
         aListener.onGetResult(this.superCalendar,
                               Components.results.NS_OK,
-                              Components.interfaces.calIEvent,
+                              calItemType,
                               null,
                               aItems.length,
                               aItems);
