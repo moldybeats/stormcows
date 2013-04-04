@@ -151,6 +151,7 @@ let rtmClient = {
         }
         let newItem = aData.newItem;
         let oldItem = aData.oldItem;
+        isEvent = newItem.isCompleted == null;
         
         if (!newItem.id) {
           stormcowsLogger.debug('rtmclient.js:request()/modify', 'newItem did not have a valid ID');
@@ -166,8 +167,7 @@ let rtmClient = {
         params = {
           list_id: listId,
           taskseries_id: taskseriesId,
-          task_id: taskId,
-          parse: '1'
+          task_id: taskId
         };
         metadata = {
           calCallback: aData.callback,
@@ -183,16 +183,35 @@ let rtmClient = {
         }
         
         // check for due date change
-        if (newItem.startDate.compare(oldItem.startDate) !=0 || 
-            newItem.startDate.isDate != oldItem.startDate.isDate) {
-          if (newItem.startDate.isDate) {
-            params.due = cal.toRFC3339(newItem.startDate);
-            params.has_due_time = '0';
-          } else {
-            params.due = cal.toRFC3339(newItem.startDate);
-            params.has_due_time = '1';
+        let newCompDate;
+        let oldCompDate;
+        if (isEvent) {
+          newCompDate = newItem.startDate;
+          oldCompDate = oldItem.startDate;
+        } else {
+          newCompDate = newItem.dueDate;
+          oldCompDate = oldItem.dueDate;
+        }
+        
+        if (newCompDate == null) {
+          if (oldCompDate != null) {
+            params.due = '';
+            this.sendRequest('rtm.tasks.setDueDate', params, true, this.modifyTask_response, metadata);
           }
-          this.sendRequest('rtm.tasks.setDueDate', params, true, this.modifyTask_response, metadata);
+        } else {
+          if (oldCompDate == null ||
+              newCompDate.compare(oldCompDate) != 0 ||
+              newCompDate.isDate != oldCompDate.isDate) {
+            params.parse = '1'
+            if (newCompDate.isDate) {
+              params.due = cal.toRFC3339(newCompDate);
+              params.has_due_time = '0';
+            } else {
+              params.due = cal.toRFC3339(newCompDate);
+              params.has_due_time = '1';
+            }
+            this.sendRequest('rtm.tasks.setDueDate', params, true, this.modifyTask_response, metadata);
+          }
         }
         
         // check for priority change
@@ -208,6 +227,15 @@ let rtmClient = {
           }
           
           this.sendRequest('rtm.tasks.setPriority', params, true, this.modifyTask_response, metadata);
+        }
+        
+        // check for completion change
+        if (!isEvent && (newItem.isCompleted != oldItem.isCompleted)) {
+          if (newItem.isCompleted) {
+            this.sendRequest('rtm.tasks.complete', params, true, this.modifyTask_response, metadata);
+          } else {
+            this.sendRequest('rtm.tasks.uncomplete', params, true, this.modifyTask_response, metadata);
+          }
         }
         
         break;
