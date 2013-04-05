@@ -10,7 +10,7 @@
     <em:id>{62227ad7-1b03-4ada-b640-8d794157cda3}</em:id>
     <em:name>StormCows</em:name>
     <em:description>Allows two-way access between calendar events and Remember The Milk tasks.</em:description>
-    <em:version>0.1</em:version>
+    <em:version>0.2</em:version>
     <em:creator>moldybeats</em:creator>
 
     <!-- Target Application this extension can install into,
