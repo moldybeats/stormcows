@@ -2,48 +2,12 @@ StormCows
 =========
 A Thunderbird/Lightning extension that allows two-way access between Remember The Milk and Lightning calendar events and todos.
 
+You can download the add-on and see instructions for configuring it here:
+https://addons.mozilla.org/addon/stormcows/
+
 Requirements
 ------------
 You'll need to install Lightning before you install this extension.
-
-Overview
---------
-Each calendar you create with StormCows corresponds to a particular list in Remember The Milk. You can choose to add a calendar either as Events or Todos.
-
-If you choose an Events calendar, the following properties will sync:
-* Task name <=> Event title
-* Task due date <=> Event start date
-* Task priority <=> Event priority
-
-If you choose a Todo calendar, the following properties will sync:
-* Task name <=> Task title
-* Task due date <=> Task due date
-* Task completion <=> Task completion
-* Task priority <=> Task priority
-
-Keep in mind that each time the calendar syncs/refreshes in Thunderbird, all calendar items are refreshed from Remember The Milk. That means properties not synced with RTM will be lost. That includes reminders, event durations, and notes.
-
-Installation & Authentication
------------------------------
-The source code for the extension is hosted here at GitHub. To make the extension:
-1. Clone the repository
-2. Create a .zip archive of the contents
-3. Rename the .zip file to a .xpi file
-
-Alternatively, you can download a pre-made .xpi file here:
-https://www.dropbox.com/s/wqp62qtz01mjicc/stormcows-0.2.xpi
-
-Then, to install the extension in Thunderbird:
-1. Open Tools > Add-ons
-2. Click Extensions at the left
-3. Drag & drop the .xpi file to the extensions window
-4. Follow the instructions to install the extension & restart Thunderbird
-5. Open Tools > Configure StormCows...
-6. Click Start Authentication
-7. Leaving the authentication dialog open, login to Remember The Milk and authorize the application
-8. Click Finish Authentication
-9. For any lists you want to sync, select the list in the dropdown menu and click Add Events or Add Todods to create a new calendar.
-10. Close the dialog. (You can come back later to add more lists, if you need.)
 
 The Future
 ----------
