@@ -31,18 +31,14 @@ calStormCows.prototype = {
   __proto__: cal.ProviderBase.prototype,
   
   classID: Components.ID("{62227ad7-1b03-4ada-b640-8d794157cda3}"),
-  contractID: "@mozilla.org/calendar/calendar;1?type=stormcows",
-  classDescription: "StormCows",
-  
-  getInterfaces: function getInterfaces(count) {
-    const ifaces = [Components.interfaces.calICalendarProvider,
-                    Components.interfaces.calICalendar,
-                    Components.interfaces.nsIClassInfo,
-                    Components.interfaces.nsISupports];
-    count.value = ifaces.length;
-    return ifaces;
-  },
-  
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calICalendar]),
+  classInfo: XPCOMUtils.generateCI({
+      classDescription: "StormCows",
+      contractID: "@mozilla.org/calendar/calendar;1?type=stormcows",
+      classID: Components.ID("{62227ad7-1b03-4ada-b640-8d794157cda3}"),
+      interfaces: [Components.interfaces.calICalendar]
+  }),
+
   getHelperForLanguage: function getHelperForLanguage(language) {
     return null;
   },
@@ -117,36 +113,14 @@ calStormCows.prototype = {
   },
   
   /*
-   * nsISupports
-   */
-  QueryInterface: function (aIID) {
-    return cal.doQueryInterface(this, calStormCows.prototype, aIID, null, this);
-  },
-  
-  /*
-   * calICalendarProvider interface
-   */
-  get prefChromeOverlay() {
-    return null;
-  },
-  
-  get displayName() {
-    return 'StormCows';
-  },
-
-  createCalendar: function cSC_createCal() {
-    throw NS_ERROR_NOT_IMPLEMENTED;
-  },
-
-  deleteCalendar: function cSC_deleteCal(cal, listener) {
-    throw NS_ERROR_NOT_IMPLEMENTED;
-  },
-  
-  /*
    * calICalendar interface
    */
   get type() {
     return "stormcows";
+  },
+
+  get providerID() {
+    return "{62227ad7-1b03-4ada-b640-8d794157cda3}";
   },
 
   get canRefresh() {
@@ -158,6 +132,15 @@ calStormCows.prototype = {
   },
   set uri(aUri) {
     this.mUri = aUri;
+  },
+
+  get id() {
+    return this.mID;
+  },
+  set id(val) {
+    let setter = this.__proto__.__proto__.__lookupSetter__("id");
+    val = setter.call(this, val);
+    return val;
   },
 
   getProperty: function cSC_getProperty(aName) {
@@ -452,8 +435,4 @@ calStormCows.prototype = {
   }
 };
 
-
-/** Module Registration */
-function NSGetFactory(cid) {
-  return (XPCOMUtils.generateNSGetFactory([calStormCows]))(cid);
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([calStormCows]);

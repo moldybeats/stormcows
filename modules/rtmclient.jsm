@@ -661,19 +661,18 @@ let rtmClient = {
               
               if (itemType == 'events') {
                 item = cal.createEvent();
-                let startDate = cal.createDateTime();
-                startDate.jsDate = new Date(due);
+                let startDate = cal.createDateTime(due);
                 let endDate = null;
                 let duration = cal.createDuration();
                 if (tasks[k].has_due_time == '0') {
                   startDate.isDate = true;
-                  startDate = startDate.getInTimezone(tzService.defaultTimezone);
+                  startDate = startDate.getInTimezone(cal.calendarDefaultTimezone());
                   endDate = startDate.clone();
                   duration.days = 1;
                   endDate.addDuration(duration);
                 } else {
                   startDate.isDate = false;
-                  startDate = startDate.getInTimezone(tzService.defaultTimezone);
+                  startDate = startDate.getInTimezone(cal.calendarDefaultTimezone());
                   endDate = startDate.clone();
                   duration.hours = 1;
                   endDate.addDuration(duration);
@@ -687,14 +686,13 @@ let rtmClient = {
                 if (!due) {
                   item.dueDate = null;
                 } else {
-                  let dueDate = cal.createDateTime();
-                  dueDate.jsDate = new Date(due);
+                  let dueDate = cal.createDateTime(due);
                   if (tasks[k].has_due_time == '0') {
                     dueDate.isDate = true;
                   } else {
                     dueDate.isDate = false;
                   }
-                  dueDate = dueDate.getInTimezone(tzService.defaultTimezone);
+                  dueDate = dueDate.getInTimezone(cal.calendarDefaultTimezone());
                   
                   item.dueDate = dueDate;
                 }
@@ -705,9 +703,8 @@ let rtmClient = {
                   item.percentComplete = 0;
                   item.isCompleted = false;
                 } else {
-                  let completedDate = cal.createDateTime();
-                  completedDate.jsDate = new Date(completed);
-                  completedDate = completedDate.getInTimezone(tzService.defaultTimezone);
+                  let completedDate = cal.createDateTime(completed);
+                  completedDate = completedDate.getInTimezone(cal.calendarDefaultTimezone());
                   completedDate.isDate = false;
                   item.completedDate = completedDate;
                   item.percentComplete = 100;
