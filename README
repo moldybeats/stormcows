@@ -1,3 +1,9 @@
+**DEPRECATED**
+After a long period of putting off improvements to StormCows, it's time for me to call it quits on this project. Unfortunately I haven't found myself using Thunderbird in the last couple years so motivation to improve the add-on has been pretty low.
+
+If anyone is interested in continuing work on the add-on, fork at will.
+
+
 StormCows
 =========
 A Thunderbird/Lightning extension that allows two-way access between Remember The Milk and Lightning calendar events and todos.
